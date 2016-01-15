@@ -90,7 +90,7 @@ class User_model extends CI_Model
     function get_by_id($user_id)
     {
         $this->db->where($this->primary_key,$user_id);
-        return $this->db->get($this->table_name);
+        return $this->db->get($this->table_name)->row_array();
     }
     
     /**
@@ -100,11 +100,15 @@ class User_model extends CI_Model
      */
     function insert($person)
     {
-        $person['salt']=$this->_get_salt_random();
-        $person['date_create']=$this->_get_date_now();
-        $person['date_update']=$this->_get_date_empty();
-        $person['date_delete']=$this->_get_date_empty();
-        $this->db->insert($this->table_name, $person);
+        $user['pin']=$person['pin'];
+        $user['password']=$this->_format_password($person);
+        $user['email']=$person['email'];
+        $user['salt']=$this->_get_salt_random();
+        $user['date_create']=$this->_get_date_now();
+        $user['date_update']=$this->_get_date_empty();
+        $user['date_delete']=$this->_get_date_empty();
+        $user['status']=0;
+        $this->db->insert($this->table_name, $user);
         return $this->db->insert_id();
     }
     
@@ -115,12 +119,13 @@ class User_model extends CI_Model
      */
     function update($user_id,$person)
     {
-        $person['salt']=$this->get_by_id($user_id)->row_array()['salt'];
-        if(!empty($person['password']))
-            $person['password']=$this->_format_password ($person);
-        $person['date_update']=$this->_get_date_now();
+        if(!empty($person['password'])) {
+            $person['salt']=$this->get_by_id($user_id)['salt'];
+            $user['password']=$this->_format_password ($person);
+        }
+        $user['date_update']=$this->_get_date_now();
         $this->db->where($this->primary_key,$user_id);
-        $this->db->update($this->table_name,$person);
+        $this->db->update($this->table_name,$user);
     }
     
     /**
@@ -129,10 +134,10 @@ class User_model extends CI_Model
      */
     function delete($user_id)
     {
-        $person['status']=-1;
-        $person['date_delete']=$this->_get_date_now();
+        $user['status']=-1;
+        $user['date_delete']=$this->_get_date_now();
         $this->db->where($this->primary_key,$user_id);
-        $this->db->update($this->table_name,$person);
+        $this->db->update($this->table_name,$user);
     }
     
 /**
@@ -175,11 +180,29 @@ class User_model extends CI_Model
     
     /**
      * 
-     * @param array $person
+     * @param array $user
      * @return string
      */
     function _format_password($person){
         return md5($person['password'].$person['salt']);
+    }
+    
+    /**
+     * Encode search Text
+     * @param string $string
+     * @return string
+     */
+    function _search_encode($string){
+       return str_replace('=','-',base64_encode($string));
+    }
+    
+    /**
+     * Decode search text
+     * @param string $string
+     * @return string
+     */
+    function _search_decode($string){
+       return str_replace('-','=',base64_decode($string));
     }
     
 }
