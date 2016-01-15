@@ -16,7 +16,7 @@
             <div class="nav"><?php echo $link_back; ?></div>
             <?php echo $message; ?>
             <?php echo validation_errors(); ?>
-            <form action="<?php echo $action; ?>" method="post">
+            <form action="<?php echo $form_action; ?>" method="post">
                 <table>
                     <tr>
                         <th>ID</th>
@@ -47,7 +47,7 @@
                             <?php form_error('password'); ?></td>
                     </tr>
                     <tr>
-                        <th>Status</th>
+                        <th>User Status</th>
                             <td>
                             <select name="status">
                                 <option value="0" <?php echo ($user['status']==0 ? 'selected="selected"' : ''); ?>>Terdaftar</option>
